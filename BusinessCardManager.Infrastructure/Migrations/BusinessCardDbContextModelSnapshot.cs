@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace BusinessCardManager.Infrastructure.Migrations
 {
-    [DbContext(typeof(BusinessCardDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     partial class BusinessCardDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

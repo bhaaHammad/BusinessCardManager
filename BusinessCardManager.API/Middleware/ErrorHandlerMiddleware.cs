@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using BusinessCardManager.API.Helpers;
-using BusinessCardManager.Application.DTOs;
+using BusinessCardManager.Application.DTOs.Errors;
 
 namespace BusinessCardManager.API.Middleware
 {
