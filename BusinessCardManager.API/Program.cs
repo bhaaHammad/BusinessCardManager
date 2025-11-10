@@ -14,8 +14,6 @@ builder.Services.AddControllers();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-
-//TODO: refactor
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IBusinessCardService, BusinessCardService>();
 
@@ -23,6 +21,18 @@ builder.Services.AddAutoMapper(typeof(BusinessCardManager.Application.Mapping.Bu
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:65149")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -33,6 +43,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAngularFrontend");
 
 app.UseHttpsRedirection();
 
