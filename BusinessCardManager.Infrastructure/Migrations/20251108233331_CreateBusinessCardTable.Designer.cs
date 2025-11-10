@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace BusinessCardManager.Infrastructure.Migrations
 {
-    [DbContext(typeof(BusinessCardDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20251108233331_CreateBusinessCardTable")]
     partial class CreateBusinessCardTable
     {

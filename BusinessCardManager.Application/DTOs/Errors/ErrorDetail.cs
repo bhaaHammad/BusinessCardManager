@@ -1,4 +1,4 @@
-﻿namespace BusinessCardManager.Application.DTOs
+﻿namespace BusinessCardManager.Application.DTOs.Errors
 {
     public class ErrorDetail
     {
