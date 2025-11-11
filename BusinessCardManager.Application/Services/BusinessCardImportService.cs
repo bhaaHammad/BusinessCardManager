@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using BusinessCardManager.Application.Common;
 using BusinessCardManager.Application.DTOs.BusinessCards;
-using BusinessCardManager.Application.DTOs.ImportCsv;
+using BusinessCardManager.Application.DTOs.Import;
 using BusinessCardManager.Application.Interfaces;
 using BusinessCardManager.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using System.Globalization;
+using System.Text;
+using System.Xml.Serialization;
 
 namespace BusinessCardManager.Application.Services
 {
@@ -13,6 +15,8 @@ namespace BusinessCardManager.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private const string XmlRootArrayOfCards = "ArrayOfBusinessCardResponseDto";
+
 
         public BusinessCardImportService(IUnitOfWork unitOfWork, IMapper mapper)
         {
@@ -20,30 +24,68 @@ namespace BusinessCardManager.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<Response<CsvPreviewResponseDto>> PreviewCsvAsync(IFormFile file)
+        public async Task<Response<PreviewResponseDto>> PreviewCsvAsync(IFormFile file)
         {
             ValidateFile(file);
 
             var lines = await ReadCsvLinesAsync(file);
             var result = ParseCsvLines(lines);
 
-            return Response<CsvPreviewResponseDto>.SuccessResponse(result, Messages.CsvPreviewGenerated);
+            return Response<PreviewResponseDto>.SuccessResponse(result, Messages.CsvPreviewGenerated);
         }
 
-        public async Task<Response<CsvImportResponseDto>> CommitImportAsync(CsvImportRequestDto request)
+        public async Task<Response<ImportResponseDto>> CommitImportAsync(ImportRequestDto request)
         {
             if (!IsValidRequest(request))
-                return Response<CsvImportResponseDto>.FailureResponse(Messages.CsvNoCardsToImport);
+                return Response<ImportResponseDto>.FailureResponse(Messages.CsvNoCardsToImport);
 
             var (importedCount, errors) = await ProcessCardsAsync(request.Cards);
 
-            var response = new CsvImportResponseDto
+            var response = new ImportResponseDto
             {
                 ImportedCount = importedCount,
                 Errors = errors
             };
 
-            return Response<CsvImportResponseDto>.SuccessResponse(response);
+            return Response<ImportResponseDto>.SuccessResponse(response);
+        }
+
+        public async Task<Response<PreviewResponseDto>> PreviewXmlAsync(IFormFile file)
+        {
+            ValidateFile(file);
+
+            List<BusinessCardResponseDto> responseCards;
+            try
+            {
+                responseCards = await DeserializeXmlFileAsync(file);
+            }
+            catch (Exception ex)
+            {
+                return Response<PreviewResponseDto>.FailureResponse(string.Format(Messages.XmlParseError, ex.Message));
+            }
+
+            var cards = responseCards.Select(MapResponseToRequestDto).ToList();
+
+            var result = new PreviewResponseDto();
+            int rowNumber = 0;
+
+            foreach (var card in cards)
+            {
+                rowNumber++;
+                if (!IsValidCard(card))
+                {
+                    result.Errors.Add(string.Format(Messages.MissingRequiredFieldsRow, rowNumber));
+                    continue;
+                }
+
+                result.Cards.Add(card);
+            }
+
+            result.TotalRows = rowNumber;
+            result.ValidRows = result.Cards.Count;
+            result.InvalidRows = result.Errors.Count;
+
+            return Response<PreviewResponseDto>.SuccessResponse(result, Messages.CsvPreviewGenerated);
         }
 
         #region methods 
@@ -70,9 +112,9 @@ namespace BusinessCardManager.Application.Services
             return lines;
         }
 
-        private CsvPreviewResponseDto ParseCsvLines(List<string> lines)
+        private PreviewResponseDto ParseCsvLines(List<string> lines)
         {
-            var result = new CsvPreviewResponseDto();
+            var result = new PreviewResponseDto();
             int rowNumber = 0;
 
             foreach (var line in lines)
@@ -126,7 +168,7 @@ namespace BusinessCardManager.Application.Services
             return !string.IsNullOrEmpty(card.Name) && !string.IsNullOrEmpty(card.Email);
         }
 
-        private bool IsValidRequest(CsvImportRequestDto request)
+        private bool IsValidRequest(ImportRequestDto request)
         {
             return request != null && request.Cards != null && request.Cards.Count > 0;
         }
@@ -176,6 +218,31 @@ namespace BusinessCardManager.Application.Services
         {
             var card = _mapper.Map<BusinessCard>(cardDto);
             await _unitOfWork.Repository<BusinessCard>().AddAsync(card);
+        }
+
+        private async Task<List<BusinessCardResponseDto>> DeserializeXmlFileAsync(IFormFile file)
+        {
+            using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+
+            var root = new XmlRootAttribute(XmlRootArrayOfCards);
+            var serializer = new XmlSerializer(typeof(List<BusinessCardResponseDto>), root);
+
+            return (List<BusinessCardResponseDto>?)serializer.Deserialize(reader) ?? new List<BusinessCardResponseDto>();
+        }
+
+        private BusinessCardRequestDto MapResponseToRequestDto(BusinessCardResponseDto rc)
+        {
+            return new BusinessCardRequestDto
+            {
+                Name = rc.Name,
+                Gender = rc.Gender,
+                DateOfBirth = rc.DateOfBirth,
+                Email = rc.Email,
+                Phone = rc.Phone,
+                Address = rc.Address,
+                Photo = null
+            };
         }
         #endregion
     }
