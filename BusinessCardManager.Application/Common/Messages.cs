@@ -20,4 +20,9 @@
     public const string CardError = "Card {0}: {1}";
 
     public const string XmlParseError = "Failed to parse XML file: {0}";
+
+    public const string QrFileRequired = "QR code file is required.";
+    public const string QrDecodeFailed = "Failed to decode QR code or QR code contains invalid data.";
+    public const string QrDecodeSuccess = "QR code decoded successfully.";
+    public const string QrProcessingError = "Error processing QR code: {0}";
 }

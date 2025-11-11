@@ -18,6 +18,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IBusinessCardService, BusinessCardService>();
 builder.Services.AddScoped<IBusinessCardImportService, BusinessCardImportService>();
 builder.Services.AddScoped<IBusinessCardExportService, BusinessCardExportService>();
+builder.Services.AddScoped<IQrDecoderService, QrDecoderService>();
 
 builder.Services.AddAutoMapper(typeof(BusinessCardManager.Application.Mapping.BusinessCardProfile));
 
