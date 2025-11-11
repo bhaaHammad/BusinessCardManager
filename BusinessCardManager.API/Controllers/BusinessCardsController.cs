@@ -15,7 +15,7 @@ namespace BusinessCardManager.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBusinessCard([FromBody] BusinessCardRequestDto BusinessCardRequestDto)
+        public async Task<IActionResult> CreateBusinessCard([FromForm] BusinessCardRequestDto BusinessCardRequestDto)
         {
             if (!ModelState.IsValid)
             {

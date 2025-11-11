@@ -1,4 +1,6 @@
-﻿namespace BusinessCardManager.Application.DTOs.BusinessCards
+﻿using Microsoft.AspNetCore.Http;
+
+namespace BusinessCardManager.Application.DTOs.BusinessCards
 {
     public class BusinessCardRequestDto
     {
@@ -7,7 +9,7 @@
         public DateTime? DateOfBirth { get; set; }
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
-        public string? Photo { get; set; }
+        public IFormFile? Photo { get; set; }
         public string? Address { get; set; }
     }
 }
