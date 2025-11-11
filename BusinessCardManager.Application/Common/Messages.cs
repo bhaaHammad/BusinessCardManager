@@ -11,4 +11,11 @@
     public const string BusinessCardCreatedLog = "Business card created with ID: {Id}";
     public const string BusinessCardDeletedLog = "Business card deleted with ID: {Id}";
     public const string PhotoSizeExceeded = "Photo size exceeds maximum allowed size of 1MB.";
+
+    public const string CsvPreviewGenerated = "CSV preview generated successfully.";
+    public const string CsvNoCardsToImport = "No cards to import.";
+    public const string MissingRequiredFieldsRow = "Row {0}: Missing required fields.";
+    public const string RowError = "Row {0}: {1}";
+    public const string MissingRequiredFieldsCard = "Card {0}: Missing required fields.";
+    public const string CardError = "Card {0}: {1}";
 }
