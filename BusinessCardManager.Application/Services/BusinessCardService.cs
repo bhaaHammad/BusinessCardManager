@@ -41,12 +41,7 @@ namespace BusinessCardManager.Application.Services
 
         public async Task<Response<List<BusinessCardResponseDto>>> GetAllBusinessCardsAsync(BusinessCardFilterDto? filter = null)
         {
-            Expression<Func<BusinessCard, bool>> predicate = bc =>
-                (filter == null || string.IsNullOrEmpty(filter.Name) || bc.Name.Contains(filter.Name)) &&
-                (filter == null || !filter.DateOfBirth.HasValue || (bc.DateOfBirth.HasValue && bc.DateOfBirth.Value.Date == filter.DateOfBirth.Value.Date)) &&
-                (filter == null || string.IsNullOrEmpty(filter.Phone) || bc.Phone.Contains(filter.Phone)) &&
-                (filter == null || string.IsNullOrEmpty(filter.Gender) || (bc.Gender != null && bc.Gender.Contains(filter.Gender))) &&
-                (filter == null || string.IsNullOrEmpty(filter.Email) || bc.Email.Contains(filter.Email));
+            var predicate = BuildFilterPredicate(filter);
 
             var businessCards = await _unitOfWork.Repository<BusinessCard>()
                 .GetAllAsync(predicate, filter.PageNumber, filter.PageSize);
@@ -60,6 +55,16 @@ namespace BusinessCardManager.Application.Services
             return Response<List<BusinessCardResponseDto>>.SuccessResponse(dto, message);
         }
 
+        public async Task<Response<List<BusinessCardResponseDto>>> GetAllBusinessCardsForExportAsync(BusinessCardFilterDto? filter = null)
+        {
+            var predicate = BuildFilterPredicate(filter);
+
+            var businessCards = await _unitOfWork.Repository<BusinessCard>()
+                .GetAllAsync(predicate);
+
+            var dto = _mapper.Map<List<BusinessCardResponseDto>>(businessCards);
+            return Response<List<BusinessCardResponseDto>>.SuccessResponse(dto);
+        }
 
         public async Task<Response<bool>> DeleteBusinessCardAsync(int id)
         {
@@ -120,6 +125,16 @@ namespace BusinessCardManager.Application.Services
                 Address = dto.Address,
                 Photo = base64Photo
             };
+        }
+
+        private Expression<Func<BusinessCard, bool>> BuildFilterPredicate(BusinessCardFilterDto? filter)
+        {
+            return bc =>
+                (filter == null || string.IsNullOrEmpty(filter.Name) || bc.Name.Contains(filter.Name)) &&
+                (filter == null || !filter.DateOfBirth.HasValue || (bc.DateOfBirth.HasValue && bc.DateOfBirth.Value.Date == filter.DateOfBirth.Value.Date)) &&
+                (filter == null || string.IsNullOrEmpty(filter.Phone) || bc.Phone.Contains(filter.Phone)) &&
+                (filter == null || string.IsNullOrEmpty(filter.Gender) || (bc.Gender != null && bc.Gender.Contains(filter.Gender))) &&
+                (filter == null || string.IsNullOrEmpty(filter.Email) || bc.Email.Contains(filter.Email));
         }
         #endregion
     }
