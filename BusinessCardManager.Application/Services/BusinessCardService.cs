@@ -3,6 +3,7 @@ using BusinessCardManager.Application.Common;
 using BusinessCardManager.Application.DTOs.BusinessCards;
 using BusinessCardManager.Application.Interfaces;
 using BusinessCardManager.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
@@ -27,10 +28,7 @@ namespace BusinessCardManager.Application.Services
 
         public async Task<Response<BusinessCardResponseDto>> CreateBusinessCardAsync(BusinessCardRequestDto businessCardRequestDto)
         {
-            if (!string.IsNullOrEmpty(businessCardRequestDto.Photo))
-                ValidatePhotoSize(businessCardRequestDto.Photo);
-
-            var businessCard = _mapper.Map<BusinessCard>(businessCardRequestDto);
+            var businessCard = await BuildBusinessCardAsync(businessCardRequestDto);
 
             await _unitOfWork.Repository<BusinessCard>().AddAsync(businessCard);
             await _unitOfWork.SaveChangesAsync();
@@ -93,6 +91,35 @@ namespace BusinessCardManager.Application.Services
             {
                 throw new ArgumentException(Messages.PhotoSizeExceeded);
             }
+        }
+
+        private async Task<string?> ConvertPhotoToBase64Async(IFormFile? photo)
+        {
+            if (photo == null) return null;
+
+            using var ms = new MemoryStream();
+            await photo.CopyToAsync(ms);
+
+            var base64 = Convert.ToBase64String(ms.ToArray());
+            ValidatePhotoSize(base64);
+
+            return base64;
+        }
+
+        private async Task<BusinessCard> BuildBusinessCardAsync(BusinessCardRequestDto dto)
+        {
+            var base64Photo = await ConvertPhotoToBase64Async(dto.Photo);
+
+            return new BusinessCard
+            {
+                Name = dto.Name,
+                Gender = dto.Gender,
+                DateOfBirth = dto.DateOfBirth,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                Address = dto.Address,
+                Photo = base64Photo
+            };
         }
         #endregion
     }
