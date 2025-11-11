@@ -18,4 +18,6 @@
     public const string RowError = "Row {0}: {1}";
     public const string MissingRequiredFieldsCard = "Card {0}: Missing required fields.";
     public const string CardError = "Card {0}: {1}";
+
+    public const string XmlParseError = "Failed to parse XML file: {0}";
 }

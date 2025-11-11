@@ -1,8 +1,8 @@
 ﻿using BusinessCardManager.Application.DTOs.BusinessCards;
 
-namespace BusinessCardManager.Application.DTOs.ImportCsv
+namespace BusinessCardManager.Application.DTOs.Import
 {
-    public class CsvPreviewResponseDto
+    public class PreviewResponseDto
     {
         public List<BusinessCardRequestDto> Cards { get; set; } = new();
         public List<string> Errors { get; set; } = new();

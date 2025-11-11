@@ -1,4 +1,4 @@
-﻿using BusinessCardManager.Application.DTOs.ImportCsv;
+﻿using BusinessCardManager.Application.DTOs.Import;
 using BusinessCardManager.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,11 +21,18 @@ namespace BusinessCardManager.API.Controllers
             return HandleResponse(preview);
         }
 
-        [HttpPost("csv/commit")]
-        public async Task<IActionResult> CommitImport([FromBody] CsvImportRequestDto request)
+        [HttpPost("commit")]
+        public async Task<IActionResult> CommitImport([FromBody] ImportRequestDto request)
         {
             var response = await _importService.CommitImportAsync(request);
             return HandleResponse(response);
+        }
+
+        [HttpPost("xml/preview")]
+        public async Task<IActionResult> PreviewXml([FromForm] IFormFile file)
+        {
+            var preview = await _importService.PreviewXmlAsync(file);
+            return HandleResponse(preview);
         }
     }
 }
