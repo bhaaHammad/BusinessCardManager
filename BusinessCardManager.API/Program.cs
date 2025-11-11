@@ -16,6 +16,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IBusinessCardService, BusinessCardService>();
+builder.Services.AddScoped<IBusinessCardImportService, BusinessCardImportService>();
 
 builder.Services.AddAutoMapper(typeof(BusinessCardManager.Application.Mapping.BusinessCardProfile));
 
