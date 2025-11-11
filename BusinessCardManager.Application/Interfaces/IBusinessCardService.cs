@@ -7,6 +7,7 @@ namespace BusinessCardManager.Application.Interfaces
     {
         Task<Response<BusinessCardResponseDto>> CreateBusinessCardAsync(BusinessCardRequestDto businessCardRequestDto);
         Task<Response<List<BusinessCardResponseDto>>> GetAllBusinessCardsAsync(BusinessCardFilterDto? filter = null);
+        Task<Response<List<BusinessCardResponseDto>>> GetAllBusinessCardsForExportAsync(BusinessCardFilterDto? filter = null);
         Task<Response<bool>> DeleteBusinessCardAsync(int id);
     }
 }
