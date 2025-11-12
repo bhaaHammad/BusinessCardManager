@@ -106,7 +106,7 @@ namespace BusinessCardManager.Application.Services
             var result = new PreviewResponseDto();
             int rowNumber = 0;
 
-            foreach (var line in lines)
+            foreach (var line in lines.Skip(1))
             {
                 rowNumber++;
                 var columns = line.Split(',');
