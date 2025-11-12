@@ -3,7 +3,6 @@ using BusinessCardManager.Application.Common;
 using BusinessCardManager.Application.DTOs.BusinessCards;
 using BusinessCardManager.Application.DTOs.Import;
 using BusinessCardManager.Application.Interfaces;
-using BusinessCardManager.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using System.Globalization;
 using System.Text;
@@ -13,18 +12,25 @@ namespace BusinessCardManager.Application.Services
 {
     public class BusinessCardImportService : IBusinessCardImportService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
         private const string XmlRootArrayOfCards = "ArrayOfBusinessCardResponseDto";
+        private const string Xml = "text/xml";
+        private const string Csv = "text/csv";
 
-
-        public BusinessCardImportService(IUnitOfWork unitOfWork, IMapper mapper)
+        public async Task<Response<PreviewResponseDto>> PreviewAsync(IFormFile file)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            if (file.ContentType == Xml)
+            {
+                return  await PreviewXmlAsync(file);
+            }
+            else if(file.ContentType == Csv)
+            {
+                return await PreviewCsvAsync(file);
+            }
+            throw new NotSupportedException();
         }
 
-        public async Task<Response<PreviewResponseDto>> PreviewCsvAsync(IFormFile file)
+        #region methods 
+        private async Task<Response<PreviewResponseDto>> PreviewCsvAsync(IFormFile file)
         {
             ValidateFile(file);
 
@@ -34,23 +40,7 @@ namespace BusinessCardManager.Application.Services
             return Response<PreviewResponseDto>.SuccessResponse(result, Messages.CsvPreviewGenerated);
         }
 
-        public async Task<Response<ImportResponseDto>> CommitImportAsync(ImportRequestDto request)
-        {
-            if (!IsValidRequest(request))
-                return Response<ImportResponseDto>.FailureResponse(Messages.CsvNoCardsToImport);
-
-            var (importedCount, errors) = await ProcessCardsAsync(request.Cards);
-
-            var response = new ImportResponseDto
-            {
-                ImportedCount = importedCount,
-                Errors = errors
-            };
-
-            return Response<ImportResponseDto>.SuccessResponse(response);
-        }
-
-        public async Task<Response<PreviewResponseDto>> PreviewXmlAsync(IFormFile file)
+        private async Task<Response<PreviewResponseDto>> PreviewXmlAsync(IFormFile file)
         {
             ValidateFile(file);
 
@@ -88,7 +78,6 @@ namespace BusinessCardManager.Application.Services
             return Response<PreviewResponseDto>.SuccessResponse(result, Messages.CsvPreviewGenerated);
         }
 
-        #region methods 
         private void ValidateFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -166,58 +155,6 @@ namespace BusinessCardManager.Application.Services
         private bool IsValidCard(BusinessCardRequestDto card)
         {
             return !string.IsNullOrEmpty(card.Name) && !string.IsNullOrEmpty(card.Email);
-        }
-
-        private bool IsValidRequest(ImportRequestDto request)
-        {
-            return request != null && request.Cards != null && request.Cards.Count > 0;
-        }
-
-        private async Task<(int importedCount, List<string> errors)> ProcessCardsAsync(List<BusinessCardRequestDto> cards)
-        {
-            int importedCount = 0;
-            var errors = new List<string>();
-
-            foreach (var cardDto in cards)
-            {
-                if (!IsValidCard(cardDto, out var validationError))
-                {
-                    errors.Add(validationError);
-                    continue;
-                }
-
-                try
-                {
-                    await AddCardAsync(cardDto);
-                    importedCount++;
-                }
-                catch (Exception ex)
-                {
-                    errors.Add(string.Format(Messages.CardError, cardDto.Name ?? "Unknown", ex.Message));
-                }
-            }
-
-            await _unitOfWork.SaveChangesAsync();
-
-            return (importedCount, errors);
-        }
-
-        private bool IsValidCard(BusinessCardRequestDto cardDto, out string error)
-        {
-            if (string.IsNullOrEmpty(cardDto.Name) || string.IsNullOrEmpty(cardDto.Email))
-            {
-                error = string.Format(Messages.MissingRequiredFieldsCard, cardDto.Name ?? "Unknown");
-                return false;
-            }
-
-            error = null;
-            return true;
-        }
-
-        private async Task AddCardAsync(BusinessCardRequestDto cardDto)
-        {
-            var card = _mapper.Map<BusinessCard>(cardDto);
-            await _unitOfWork.Repository<BusinessCard>().AddAsync(card);
         }
 
         private async Task<List<BusinessCardResponseDto>> DeserializeXmlFileAsync(IFormFile file)

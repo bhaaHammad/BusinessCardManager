@@ -2,7 +2,7 @@
 
 namespace BusinessCardManager.Application.DTOs.Import
 {
-    public class ImportRequestDto
+    public class BulkBusinessCardRequestDto
     {
         public List<BusinessCardRequestDto> Cards { get; set; } = new List<BusinessCardRequestDto>();
     }

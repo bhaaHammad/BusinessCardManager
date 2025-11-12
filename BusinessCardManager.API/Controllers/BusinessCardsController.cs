@@ -1,4 +1,5 @@
 ﻿using BusinessCardManager.Application.DTOs.BusinessCards;
+using BusinessCardManager.Application.DTOs.Import;
 using BusinessCardManager.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,13 @@ namespace BusinessCardManager.API.Controllers
 
             var result = await _businessCardService.CreateBusinessCardAsync(BusinessCardRequestDto);
             return HandleResponse(result);
+        }
+
+        [HttpPost("bulk")]
+        public async Task<IActionResult> BulkCreateBusinessCard([FromBody] BulkBusinessCardRequestDto request)
+        {
+            var response = await _businessCardService.BulkCreateBusinessCardAsync(request);
+            return HandleResponse(response);
         }
 
         [HttpGet]
